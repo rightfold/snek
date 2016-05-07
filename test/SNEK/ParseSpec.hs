@@ -26,7 +26,7 @@ spec = do
         Left CallWithoutCallee -> True
         _ -> False
       parseVE (List [Symbol "x"]) `shouldSatisfy` \case
-        Right (NameVE () "x") -> True
+        Left CallWithoutArgument -> True
         _ -> False
       parseVE (List [Symbol "x", Symbol "y"]) `shouldSatisfy` \case
         Right (ValueApplyVE (NameVE () "x") (NameVE () "y")) -> True
@@ -41,7 +41,7 @@ spec = do
         Left CallWithoutCallee -> True
         _ -> False
       parseVE (Array [Symbol "x"]) `shouldSatisfy` \case
-        Right (NameVE () "x") -> True
+        Left CallWithoutArgument -> True
         _ -> False
       parseVE (Array [Symbol "x", Symbol "y"]) `shouldSatisfy` \case
         Right (TypeApplyVE (NameVE () "x") (NameTE () "y")) -> True
