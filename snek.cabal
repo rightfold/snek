@@ -15,7 +15,7 @@ library
                         SNEK.Symbol
                         SNEK.Type
   ghc-options:          -Wall
-  build-depends:        array, base, containers, either, lens, mtl
+  build-depends:        array, base, containers, either, lens, mtl, split
   build-tools:          alex, happy
   default-language:     Haskell2010
 
@@ -23,7 +23,7 @@ executable snekc
   hs-source-dirs:       app
   main-is:              Main.hs
   ghc-options:          -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:        base, either, mtl, snek
+  build-depends:        base, containers, either, lens, mtl, snek
   default-language:     Haskell2010
 
 test-suite snek-test
