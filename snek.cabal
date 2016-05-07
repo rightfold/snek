@@ -5,9 +5,18 @@ cabal-version:          >=1.10
 
 library
   hs-source-dirs:       src
-  exposed-modules:      Lib, SNEK.AST, SNEK.Check, SNEK.Symbol, SNEK.Type
+  exposed-modules:      Lib,
+                        SNEK.AST
+                        SNEK.Check
+                        SNEK.Data
+                        SNEK.Read
+                        SNEK.Read.Lex
+                        SNEK.Read.Parse
+                        SNEK.Symbol
+                        SNEK.Type
   ghc-options:          -Wall
-  build-depends:        base, containers, either, lens, mtl
+  build-depends:        array, base, containers, either, lens, mtl
+  build-tools:          alex, happy
   default-language:     Haskell2010
 
 executable snekc
