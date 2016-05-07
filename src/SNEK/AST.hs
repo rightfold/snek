@@ -25,7 +25,7 @@ data VE ks ts vs
   | ValueLambdaVE String (TE ts) (VE ks ts vs)
 
   -- | Type-dependent value.
-  | TypeLambdaVE String (KE ks) (VE ks ts vs)
+  | TypeLambdaVE String Int (KE ks) (VE ks ts vs)
 
   -- | Apply value-dependent value.
   | ValueApplyVE (VE ks ts vs) (VE ks ts vs)

@@ -6,6 +6,8 @@ module SNEK.Type
 , (~->~)
 
 , tK
+
+, replaceVarT
 ) where
 
 infixr 5 *->*
@@ -25,6 +27,7 @@ data T
   | FuncT
   | ApplyT T T
   | VarT Int K
+  | UniversalT Int K T
   deriving (Eq, Show)
 
 (~->~) :: T -> T -> T
@@ -39,3 +42,10 @@ tK (ApplyT c a) =
     (ApplyK (ApplyK FuncK _) r) -> r
     _ -> error "tK: ill-kinded type"
 tK (VarT _ k) = k
+
+replaceVarT :: Int -> T -> T -> T
+replaceVarT _ BoolT              _ = BoolT
+replaceVarT _ FuncT              _ = FuncT
+replaceVarT i (ApplyT c a)       b = ApplyT (replaceVarT i c b) (replaceVarT i a b)
+replaceVarT i v@(VarT j k)       b = if i == j then b else v
+replaceVarT i (UniversalT j k t) b = UniversalT j k (replaceVarT i t b)

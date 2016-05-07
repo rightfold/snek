@@ -48,8 +48,8 @@ parseVE (Array (f : as)) = do
 parseVESpecial :: Datum -> [Datum] -> Either ParseError (Maybe (VE () () ()))
 parseVESpecial (Symbol "fn") as = Just <$> go
   where go = case as of
-          [List  ps, b] -> go' ValueLambdaVE ps b parseTE
-          [Array ps, b] -> go' TypeLambdaVE  ps b parseKE
+          [List  ps, b] -> go' ValueLambdaVE           ps b parseTE
+          [Array ps, b] -> go' (TypeLambdaVE `flip` 0) ps b parseKE
           _ -> throwError IllFormedSpecialForm
         go' node ps b parseTK = do
           ps' <- parseParams ps parseTK
