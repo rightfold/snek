@@ -10,7 +10,7 @@ import Data.Function ((&))
 import SNEK.AST (TE(..), VE(..))
 import SNEK.Check
 import SNEK.Symbol (TS(..), VS(..))
-import SNEK.Type ((*->*), K(..), T(..))
+import SNEK.Type ((*->*), (~->~), K(..), T(..))
 import Test.Hspec
 
 import qualified Data.Map as Map
@@ -55,3 +55,30 @@ spec = do
       runReader (runEitherT c) e `shouldSatisfy` \case
         Right _ -> False
         Left er -> er == KindMismatch (TypeK *->* TypeK *->* TypeK) TypeK
+  describe "checkVE ValueApplyVE" $ do
+    it "ok" $ do
+      let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
+      let e = emptyE
+              & eVSs %~ Map.insert "f" (VS (BoolT ~->~ BoolT ~->~ BoolT))
+              & eVSs %~ Map.insert "x" (VS BoolT)
+      runReader (runEitherT c) e `shouldSatisfy` \case
+        Right (ValueApplyVE (NameVE fVS "f") (NameVE xVS "x")) ->
+             vsT fVS == BoolT ~->~ BoolT ~->~ BoolT
+          && vsT xVS == BoolT
+        _ -> False
+    it "NonFunctionApplication" $ do
+      let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
+      let e = emptyE
+              & eVSs %~ Map.insert "f" (VS BoolT)
+              & eVSs %~ Map.insert "x" (VS BoolT)
+      runReader (runEitherT c) e `shouldSatisfy` \case
+        Right _ -> False
+        Left er -> er == NonFunctionApplication BoolT
+    it "TypeMismatch" $ do
+      let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
+      let e = emptyE
+              & eVSs %~ Map.insert "f" (VS ((BoolT ~->~ BoolT) ~->~ BoolT))
+              & eVSs %~ Map.insert "x" (VS BoolT)
+      runReader (runEitherT c) e `shouldSatisfy` \case
+        Right _ -> False
+        Left er -> er == TypeMismatch (BoolT ~->~ BoolT) BoolT
