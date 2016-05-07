@@ -2,7 +2,7 @@ module Main where
 
 import Control.Lens ((%~))
 import Data.Function ((&))
-import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck)
+import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck, veT)
 import SNEK.Parse (parseVE)
 import SNEK.Read (readData)
 import SNEK.Symbol (KS(..), TS(..), VS(..))
@@ -16,13 +16,16 @@ main = interact $ \text ->
     Just data_ ->
       case mapM parseVE data_ of
         Right ast ->
-          case mapM (\e -> runCheck (checkVE e) env) ast of
+          case mapM check ast of
             Right tast -> show tast ++ "\n"
             Left  err  -> show err ++ "\n"
         Left  err -> show err ++ "\n"
     Nothing -> show "read error\n"
 
-  where env = emptyE
+  where check e = case runCheck (checkVE e) env of
+                    Left  er -> Left er
+                    Right te -> Right (te, veT te)
+        env = emptyE
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eTSs %~ Map.insert "bool" (TS BoolT)
               & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))

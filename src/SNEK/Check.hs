@@ -18,6 +18,7 @@ module SNEK.Check
 , checkVE
 
   -- * Deriving kinds and types from expressions
+, keK
 , teT
 , veT
 ) where
