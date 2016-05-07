@@ -29,3 +29,5 @@ main = interact $ \text ->
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eTSs %~ Map.insert "bool" (TS BoolT)
               & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))
+              & eVSs %~ Map.insert "true" (VS BoolT) -- this will be a literal later
+              & eVSs %~ Map.insert "false" (VS BoolT) -- this will be a literal later
