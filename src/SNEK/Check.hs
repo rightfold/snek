@@ -40,12 +40,14 @@ import qualified Data.Map as Map
 -- Environment
 -------------------------------------------------------------------------------
 
-data E = E { _eKSs :: Map String KS
-           , _eTSs :: Map String TS
-           , _eVSs :: Map String VS
+-- | Environment (also known as "symbol table").
+data E = E { _eKSs :: Map String KS -- ^ Kind symbols in scope.
+           , _eTSs :: Map String TS -- ^ Type symbols in scope.
+           , _eVSs :: Map String VS -- ^ Value symbols in scope.
            }
 $(makeLenses ''E)
 
+-- | Empty environment.
 emptyE :: E
 emptyE = E Map.empty Map.empty Map.empty
 
@@ -74,16 +76,19 @@ fresh = do { id <- get; modify (+ 1); return id }
 -- Checking expressions
 -------------------------------------------------------------------------------
 
+-- | Check a kind expression in the current environment.
 checkKE :: KE ts -> Check (KE KS)
 checkKE (NameKE _ name) = (view eKSs >>=) $ Map.lookup name >>> \case
                             Just ks -> return $ NameKE ks name
                             Nothing -> throwError (KindNotInScope name)
 
+-- | Check a type expression in the current environment.
 checkTE :: TE ts -> Check (TE TS)
 checkTE (NameTE _ name) = (view eTSs >>=) $ Map.lookup name >>> \case
                             Just ts -> return $ NameTE ts name
                             Nothing -> throwError (TypeNotInScope name)
 
+-- | Check a value expression in the current environment.
 checkVE :: VE ks ts vs -> Check (VE KS TS VS)
 checkVE (NameVE _ name) = (view eVSs >>=) $ Map.lookup name >>> \case
                             Just vs -> return $ NameVE vs name
@@ -125,12 +130,18 @@ checkVE (TypeApplyVE f a) = do
 -- Deriving kinds and types from expressions
 -------------------------------------------------------------------------------
 
+-- | Return the kind of a kind expression. The kind expression must be
+--   well-kinded.
 keK :: KE KS -> K
 keK (NameKE ks _) = ksK ks
 
+-- | Return the type of a type expression. The type expression must be
+--   well-typed.
 teT :: TE TS -> T
 teT (NameTE ts _) = tsT ts
 
+-- | Return the type of a value expression. The value expression must be
+--   well-typed.
 veT :: VE KS TS VS -> T
 veT (NameVE vs _) = vsT vs
 veT (ValueLambdaVE _   pt b) = ApplyT (ApplyT FuncT (teT pt)) (veT b)

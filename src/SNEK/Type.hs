@@ -16,6 +16,7 @@ module SNEK.Type
 infixr 5 *->*
 infixr 5 ~->~
 
+-- | Kind.
 data K
   = TypeK
   | FuncK
@@ -25,6 +26,7 @@ data K
 (*->*) :: K -> K -> K
 k *->* l = ApplyK (ApplyK FuncK k) l
 
+-- | Type.
 data T
   = BoolT
   | FuncT
@@ -46,7 +48,11 @@ tK (ApplyT c a) =
     _ -> error "tK: ill-kinded type"
 tK (VarT _ k) = k
 
-replaceVarT :: Int -> T -> T -> T
+-- | Replace a 'VarT' everywhere.
+replaceVarT :: Int -- ^ The ID of the 'VarT'.
+            -> T   -- ^ The type to replace the 'VarT' in.
+            -> T   -- ^ The type to replace the 'VarT' by.
+            -> T
 replaceVarT _ BoolT              _ = BoolT
 replaceVarT _ FuncT              _ = FuncT
 replaceVarT i (ApplyT c a)       b = ApplyT (replaceVarT i c b) (replaceVarT i a b)

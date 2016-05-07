@@ -3,6 +3,7 @@
 module SNEK.Parse
 ( ParseError(..)
 
+, parseKE
 , parseTE
 , parseVE
 ) where
@@ -18,14 +19,17 @@ data ParseError
   | IllFormedSpecialForm
   deriving (Eq, Show)
 
+-- | Turn a datum into a kind expression.
 parseKE :: Datum -> Either ParseError (KE ())
 parseKE (Symbol name) = return $ NameKE () name
 parseKE _ = error "not yet implemented"
 
+-- | Turn a datum into a type expression.
 parseTE :: Datum -> Either ParseError (TE ())
 parseTE (Symbol name) = return $ NameTE () name
 parseTE _ = error "not yet implemented"
 
+-- | Turn a datum into a value expression.
 parseVE :: Datum -> Either ParseError (VE () () ())
 parseVE (Symbol name)    = return $ NameVE () name
 parseVE (List  [])       = throwError CallWithoutCallee
