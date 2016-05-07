@@ -15,3 +15,5 @@ spec = do
     it "ApplyT" $ do
       tK (ApplyT FuncT BoolT) `shouldBe` TypeK *->* TypeK
       tK (ApplyT (ApplyT FuncT BoolT) BoolT) `shouldBe` TypeK
+    it "VarT" $ do
+      tK (VarT 0 TypeK) `shouldBe` TypeK

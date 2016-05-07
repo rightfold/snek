@@ -1,14 +1,12 @@
 module Main where
 
 import Control.Lens ((%~))
-import Control.Monad.Reader (runReader)
-import Control.Monad.Trans.Either (runEitherT)
 import Data.Function ((&))
-import SNEK.Check (checkVE, emptyE, eTSs, eVSs)
+import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck)
 import SNEK.Parse (parseVE)
 import SNEK.Read (readData)
-import SNEK.Symbol (TS(..), VS(..))
-import SNEK.Type ((~->~), T(..))
+import SNEK.Symbol (KS(..), TS(..), VS(..))
+import SNEK.Type ((~->~), K(..), T(..))
 
 import qualified Data.Map as Map
 
@@ -18,12 +16,13 @@ main = interact $ \text ->
     Just data_ ->
       case mapM parseVE data_ of
         Right ast ->
-          case mapM (\e -> runReader (runEitherT (checkVE e)) env) ast of
+          case mapM (\e -> runCheck (checkVE e) env) ast of
             Right tast -> show tast ++ "\n"
             Left  err  -> show err ++ "\n"
         Left  err -> show err ++ "\n"
     Nothing -> show "read error\n"
 
   where env = emptyE
-              & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))
+              & eKSs %~ Map.insert "*" (KS TypeK)
               & eTSs %~ Map.insert "bool" (TS BoolT)
+              & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))

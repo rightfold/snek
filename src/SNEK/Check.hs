@@ -11,6 +11,7 @@ module SNEK.Check
   -- * Infrastructure
 , CheckError(..)
 , Check
+, runCheck
 
   -- * Checking expressions
 , checkTE
@@ -24,11 +25,12 @@ module SNEK.Check
 import Control.Category ((>>>))
 import Control.Lens ((%~), makeLenses, view)
 import Control.Monad.Error.Class (throwError)
-import Control.Monad.Reader (local, Reader)
-import Control.Monad.Trans.Either (EitherT)
+import Control.Monad.Reader (local, ReaderT, runReaderT)
+import Control.Monad.State (evalState, get, modify, State)
+import Control.Monad.Trans.Either (EitherT, runEitherT)
 import Data.Map (Map)
 import SNEK.AST (KE(..), TE(..), VE(..))
-import SNEK.Symbol (VS(..), KS(..), TS(..))
+import SNEK.Symbol (KS(..), TS(..), VS(..))
 import SNEK.Type (K(..), T(..), tK)
 
 import qualified Data.Map as Map
@@ -51,18 +53,30 @@ emptyE = E Map.empty Map.empty Map.empty
 -------------------------------------------------------------------------------
 
 data CheckError
-  = TypeNotInScope String
+  = KindNotInScope String
+  | TypeNotInScope String
   | ValueNotInScope String
   | KindMismatch K K
   | TypeMismatch T T
   | NonFunctionApplication T
   deriving (Eq, Show)
 
-type Check = EitherT CheckError (Reader E)
+type Check = EitherT CheckError (ReaderT E (State Int))
+
+runCheck :: Check a -> E -> Either CheckError a
+runCheck c e = evalState (runReaderT (runEitherT c) e) 0
+
+fresh :: Check Int
+fresh = do { id <- get; modify (+ 1); return id }
 
 -------------------------------------------------------------------------------
 -- Checking expressions
 -------------------------------------------------------------------------------
+
+checkKE :: KE ts -> Check (KE KS)
+checkKE (NameKE _ name) = (view eKSs >>=) $ Map.lookup name >>> \case
+                            Just ks -> return $ NameKE ks name
+                            Nothing -> throwError (KindNotInScope name)
 
 checkTE :: TE ts -> Check (TE TS)
 checkTE (NameTE _ name) = (view eTSs >>=) $ Map.lookup name >>> \case
@@ -79,6 +93,11 @@ checkVE (ValueLambdaVE p pt b) = do
   expectKind (tK ptT) TypeK
   b' <- local (eVSs %~ Map.insert p (VS ptT)) $ checkVE b
   return $ ValueLambdaVE p pt' b'
+checkVE (TypeLambdaVE p pk b) = do
+  pk' <- checkKE pk
+  pT <- VarT `flip` (keT pk') <$> fresh
+  b' <- local (eTSs %~ Map.insert p (TS pT)) $ checkVE b
+  return $ TypeLambdaVE p pk' b'
 checkVE (ValueApplyVE f a) = do
   f' <- checkVE f
   case veT f' of
@@ -93,6 +112,9 @@ checkVE (ValueApplyVE f a) = do
 -------------------------------------------------------------------------------
 -- Deriving kinds and types from expressions
 -------------------------------------------------------------------------------
+
+keT :: KE KS -> K
+keT (NameKE ks _) = ksK ks
 
 teT :: TE TS -> T
 teT (NameTE ts _) = tsT ts

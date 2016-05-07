@@ -9,7 +9,7 @@ tokens :-
   \,                  ;
   \;.*                ;
 
-  [a-zA-Z_=>\.\-]+    { Identifier }
+  [a-zA-Z_=>\*\.\-]+  { Identifier }
 
   \[                  { const BracketLeft }
   \]                  { const BracketRight }

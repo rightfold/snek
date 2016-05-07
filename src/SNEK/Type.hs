@@ -24,6 +24,7 @@ data T
   = BoolT
   | FuncT
   | ApplyT T T
+  | VarT Int K
   deriving (Eq, Show)
 
 (~->~) :: T -> T -> T
@@ -37,3 +38,4 @@ tK (ApplyT c a) =
   case tK c of
     (ApplyK (ApplyK FuncK _) r) -> r
     _ -> error "tK: ill-kinded type"
+tK (VarT _ k) = k

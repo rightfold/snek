@@ -9,7 +9,7 @@ module SNEK.Parse
 
 import Control.Monad (forM, when)
 import Data.List.Split (chunksOf)
-import SNEK.AST (TE(..), VE(..))
+import SNEK.AST (KE(..), TE(..), VE(..))
 import SNEK.Data (Datum(..))
 
 data ParseError
@@ -17,6 +17,10 @@ data ParseError
   | CallWithoutArgument
   | IllFormedSpecialForm
   deriving (Eq, Show)
+
+parseKE :: Datum -> Either ParseError (KE ())
+parseKE (Symbol name) = return $ NameKE () name
+parseKE _ = error "not yet implemented"
 
 parseTE :: Datum -> Either ParseError (TE ())
 parseTE (Symbol name) = return $ NameTE () name
@@ -44,16 +48,18 @@ parseVE (Array (f : as)) = do
 parseVESpecial :: Datum -> [Datum] -> Either ParseError (Maybe (VE () () ()))
 parseVESpecial (Symbol "fn") as = Just <$> go
   where go = case as of
-          [List ps, b] -> do
-            ps' <- parseParams ps
-            b' <- parseVE b
-            return $ foldr (\(p, t) -> ValueLambdaVE p t) b' ps'
+          [List  ps, b] -> go' ValueLambdaVE ps b parseTE
+          [Array ps, b] -> go' TypeLambdaVE  ps b parseKE
           _ -> throwError IllFormedSpecialForm
-        parseParams ps = do
+        go' node ps b parseTK = do
+          ps' <- parseParams ps parseTK
+          b' <- parseVE b
+          return $ foldr (\(p, t) -> node p t) b' ps'
+        parseParams ps parseTK = do
           let pairs = (chunksOf 2 ps)
           when (null pairs) (throwError IllFormedSpecialForm)
           forM pairs $ \case
-            [Symbol n, t] -> (n,) <$> parseTE t
+            [Symbol n, t] -> (n,) <$> parseTK t
             _ -> throwError IllFormedSpecialForm
 parseVESpecial _ _ = return Nothing
 
