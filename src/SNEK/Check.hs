@@ -15,6 +15,10 @@ module SNEK.Check
   -- * Checking expressions
 , checkTE
 , checkVE
+
+  -- * Deriving kinds and types from expressions
+, teT
+, veT
 ) where
 
 import Control.Category ((>>>))
