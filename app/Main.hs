@@ -6,7 +6,7 @@ import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck, veT)
 import SNEK.Parse (parseVE)
 import SNEK.Read (readData)
 import SNEK.Symbol (KS(..), TS(..), VS(..))
-import SNEK.Type ((~->~), K(..), T(..))
+import SNEK.Type ((~->~), K(..), prettyT, T(..))
 
 import qualified Data.Map as Map
 
@@ -24,7 +24,7 @@ main = interact $ \text ->
 
   where check e = case runCheck (checkVE e) env of
                     Left  er -> Left er
-                    Right te -> Right (te, veT te)
+                    Right te -> Right (te, prettyT $ veT te)
         env = emptyE
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eTSs %~ Map.insert "bool" (TS BoolT)
