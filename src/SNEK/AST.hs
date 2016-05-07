@@ -8,16 +8,18 @@ module SNEK.AST
 data KE ks
   -- | Reference to named kind.
   = NameKE ks String
+  deriving (Show)
 
 -- | Type expression.
 data TE ts
   -- | Reference to named type.
   = NameTE ts String
+  deriving (Show)
 
 -- | Value expression.
 data VE ks ts vs
   -- | Reference to named value.
-  = NameVE vs
+  = NameVE vs String
 
   -- | Value-dependent value.
   | ValueLambdaVE String (TE ts) (VE ks ts vs)
@@ -30,3 +32,4 @@ data VE ks ts vs
 
   -- | Apply type-dependent value.
   | TypeApplyVE (VE ks ts vs) (TE ts)
+  deriving (Show)

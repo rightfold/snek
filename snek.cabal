@@ -5,9 +5,9 @@ cabal-version:          >=1.10
 
 library
   hs-source-dirs:       src
-  exposed-modules:      Lib, SNEK.AST, SNEK.Symbol, SNEK.Type
+  exposed-modules:      Lib, SNEK.AST, SNEK.Check, SNEK.Symbol, SNEK.Type
   ghc-options:          -Wall
-  build-depends:        base >= 4.7 && < 5
+  build-depends:        base, containers, either, lens, mtl
   default-language:     Haskell2010
 
 executable snekc
@@ -21,6 +21,6 @@ test-suite snek-test
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              Spec.hs
-  build-depends:        base, hspec, snek
+  build-depends:        base, containers, either, hspec, lens, mtl, snek
   ghc-options:          -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:     Haskell2010
