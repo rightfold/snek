@@ -9,6 +9,7 @@ library
                         SNEK.AST
                         SNEK.Check
                         SNEK.Data
+                        SNEK.Parse
                         SNEK.Read
                         SNEK.Read.Lex
                         SNEK.Read.Parse
