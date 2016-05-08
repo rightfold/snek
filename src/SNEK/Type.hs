@@ -18,6 +18,7 @@ module SNEK.Type
 
 import Control.Lens ((%=), _1, _2)
 import Control.Monad.State (evalState, gets, State)
+import Data.List (sortOn)
 import Data.Map (Map)
 
 import qualified Data.Map as Map
@@ -34,6 +35,7 @@ data S
 data K
   = TypeK
   | FuncK
+  | RowK K
   | ApplyK K K
   deriving (Eq, Show)
 
@@ -44,6 +46,7 @@ k *->* l = ApplyK (ApplyK FuncK k) l
 data T
   = BoolT
   | FuncT
+  | StructT (Map String T)
   | ApplyT T T
   | VarT Int K
   | UniversalT Int K T
@@ -54,6 +57,12 @@ instance Eq T where
     where eq :: T -> T -> Bool
           BoolT            `eq` BoolT               = True
           FuncT            `eq` FuncT               = True
+          StructT fs       `eq` StructT fs'         =
+            let sfs  = sortOn fst (Map.toList fs)
+                sfs' = sortOn fst (Map.toList fs')
+             in    length fs == length fs'
+                && all (\((n, t), (n', t')) -> n == n' && t `eq` t')
+                       (sfs `zip` sfs')
           ApplyT f a       `eq` ApplyT f' a'        = f `eq` f' && a `eq` a'
           VarT i k         `eq` VarT i' k'          = i == i' && k == k'
           UniversalT i k t `eq` UniversalT i' k' t' = i == i' && k == k' && t `eq` t'
@@ -64,6 +73,7 @@ instance Eq T where
             where go :: T -> State (Int, Map Int Int) T
                   go BoolT              = return BoolT
                   go FuncT              = return FuncT
+                  go (StructT fs)       = StructT <$> mapM go fs
                   go (ApplyT f a)       = ApplyT <$> go f <*> go a
                   go (VarT i k)         = gets (Map.lookup i . snd) >>= \case
                                             Just j  -> return $ VarT j k
@@ -81,6 +91,7 @@ t ~->~ u = ApplyT (ApplyT FuncT t) u
 tK :: T -> K
 tK BoolT = TypeK
 tK FuncT = TypeK *->* TypeK *->* TypeK
+tK (StructT _) = TypeK
 tK (ApplyT c a) =
   case tK c of
     (ApplyK (ApplyK FuncK _) r) -> r
