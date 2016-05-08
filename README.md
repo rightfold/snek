@@ -30,3 +30,7 @@ stages, shown in the following figure.
     ; used to pass types as arguments, and lists are used to pass values as
     ; arguments.
     ([(fn [t *] (fn (x t) x)) bool] true)
+
+    ; Structs, also known as records.
+    (.name {name "rightfold"
+            dead false})
