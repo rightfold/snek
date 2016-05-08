@@ -14,10 +14,19 @@
   complement (fn [i *]
                (fn (f (-> i bool), x i)
                  (not (f x))))
+
+  semigroup-and {append and}
+  semigroup-or {append or}
+  monoid-and {append (.append semigroup-and), append-id #t}
+  monoid-or {append (.append semigroup-or), append-id #f}
 ) {
   and and
   or or
   not not
   implies implies
   complement complement
+  semigroup-and semigroup-and
+  semigroup-or semigroup-or
+  monoid-and monoid-and
+  monoid-or monoid-or
 })
