@@ -105,6 +105,7 @@ replaceVarT :: Int -- ^ The ID of the 'VarT'.
             -> T
 replaceVarT _ BoolT              _ = BoolT
 replaceVarT _ FuncT              _ = FuncT
+replaceVarT i (StructT fs)       b = StructT (fmap (\t -> replaceVarT i t b) fs)
 replaceVarT i (ApplyT c a)       b = ApplyT (replaceVarT i c b) (replaceVarT i a b)
 replaceVarT i v@(VarT j k)       b = if i == j then b else v
 replaceVarT i (UniversalT j k t) b = UniversalT j k (replaceVarT i t b)

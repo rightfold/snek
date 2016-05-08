@@ -10,9 +10,26 @@
             (fn (f (-> b c), g (-> a b), x a)
               (f (g x))))
 
-  #! Category of functions.
   category {
     compose-id id
     compose compose
   }
-) {id id, const const, compose compose, category category})
+
+  semigroup (fn [a *] {
+    append (fn (f (-> a a), g (-> a a))
+             ([compose a a a] f g))
+  })
+
+  monoid (fn [a *] {
+    append (.append [semigroup a])
+
+    append-id [id a]
+  })
+) {
+  id id
+  const const
+  compose compose
+  category category
+  semigroup semigroup
+  monoid monoid
+})
