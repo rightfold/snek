@@ -8,6 +8,7 @@ tokens :-
   $white              ;
   \,                  ;
   \;.*                ;
+  \#\!.*              ; -- TODO: document, not comment
 
   [a-zA-Z_=>\*\.\-]+  { Identifier }
 

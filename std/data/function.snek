@@ -1,0 +1,7 @@
+(let (
+  #! Return the value argument.
+  id (fn [t *] (fn (x t) x))
+
+  #! Return the first value argument.
+  const (fn [t *, u *] (fn (x t, _ u) x))
+) {id id, const const})

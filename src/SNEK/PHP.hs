@@ -1,6 +1,7 @@
 module SNEK.PHP
 ( PHPGen
 , runPHPGen
+, ve2PHPM
 , ve2PHPS
 , ve2PHPE
 ) where
@@ -18,6 +19,11 @@ type PHPGen = Reader (Set String)
 
 runPHPGen :: PHPGen a -> a
 runPHPGen g = runReader g Set.empty
+
+ve2PHPM :: VE ks ts vs -> PHPGen String
+ve2PHPM e = do
+  s <- ve2PHPS (\e' -> "return " ++ e' ++ ";\n") e
+  return $ "<?php\nreturn (function() {\n" ++ indent s ++ "})();\n"
 
 ve2PHPS :: (String -> String) -> VE ks ts vs -> PHPGen String
 ve2PHPS r (LetVE n v b) =

@@ -4,7 +4,7 @@ import Control.Lens ((%~))
 import Data.Function ((&))
 import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck, veT)
 import SNEK.Parse (parseVE)
-import SNEK.PHP (runPHPGen, ve2PHPS)
+import SNEK.PHP (runPHPGen, ve2PHPM)
 import SNEK.Read (readData)
 import SNEK.Symbol (KS(..), TS(..), VS(..))
 import SNEK.Type ((~->~), K(..), prettyT, T(..))
@@ -25,9 +25,7 @@ main = interact $ \text ->
 
   where check e = case runCheck (checkVE e) env of
                     Left  er -> Left er
-                    Right te -> Right $ "// " ++ show te ++ "\n"
-                                     ++ "// " ++ prettyT (veT te) ++ "\n"
-                                     ++ runPHPGen (ve2PHPS (++ ";") te) ++ "\n"
+                    Right te -> Right $ runPHPGen (ve2PHPM te)
         env = emptyE
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eKSs %~ Map.insert "->" (KS FuncK)
