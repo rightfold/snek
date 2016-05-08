@@ -26,7 +26,7 @@ module SNEK.Check
 
 import Control.Category ((>>>))
 import Control.Lens ((%~), makeLenses, view)
-import Control.Monad (forM, when)
+import Control.Monad (forM)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (local, ReaderT, runReaderT)
 import Control.Monad.State (evalState, get, modify, State)
@@ -117,6 +117,13 @@ checkVE (StructReadVE f s) = do
     StructT fs | Map.member f fs -> return $ StructReadVE f s'
                | otherwise       -> throwError (UnknownField f sT)
     _ -> throwError (NonStruct sT)
+checkVE (IfVE c t f) = do
+  c' <- checkVE c
+  expectType (veT c') BoolT
+  t' <- checkVE t
+  f' <- checkVE f
+  expectType (veT t') (veT f')
+  return $ IfVE c' t' f'
 checkVE (LetVE n v b) = do
   v' <- checkVE v
   let vT = veT v'
@@ -128,8 +135,7 @@ checkVE (LetRecVE bds b) = do
   local (eVSs %~ Map.union bVSs) $ do
     bds'' <- forM bds' $ \(n, t', v) -> do
                v' <- checkVE v
-               when (veT v' /= teT t') $
-                 throwError $ TypeMismatch (veT v') (teT t')
+               expectType (veT v') (teT t')
                return (n, t', v')
     b' <- checkVE b
     return $ LetRecVE bds'' b'
@@ -195,6 +201,7 @@ veT (StructReadVE f s) =
                     Just t  -> t
                     Nothing -> error "veT: ill-typed expression"
     _ -> error "veT: ill-typed expression"
+veT (IfVE _ t _) = veT t
 veT (LetVE _ _ b) = veT b
 veT (LetRecVE _ b) = veT b
 veT (ValueLambdaVE _   pt b) = ApplyT (ApplyT FuncT (teT pt)) (veT b)
@@ -215,3 +222,7 @@ veT (TypeApplyVE f a) =
 expectKind :: K -> K -> Check ()
 expectKind k l | k == l    = return ()
                | otherwise = throwError (KindMismatch k l)
+
+expectType :: T -> T -> Check ()
+expectType t u | t == u    = return ()
+               | otherwise = throwError (TypeMismatch t u)
