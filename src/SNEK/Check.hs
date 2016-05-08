@@ -108,6 +108,7 @@ checkVE :: VE ks ts vs -> Check (VE KS TS VS)
 checkVE (NameVE _ name) = (view eVSs >>=) $ Map.lookup name >>> \case
                             Just vs -> return $ NameVE vs name
                             Nothing -> throwError (ValueNotInScope name)
+checkVE (BoolVE b) = return $ BoolVE b
 checkVE (StructVE fs) = StructVE <$> mapM checkVE fs
 checkVE (StructReadVE f s) = do
   s' <- checkVE s
@@ -186,6 +187,7 @@ teT (ApplyTE f a) = ApplyT (teT f) (teT a)
 --   well-typed.
 veT :: VE KS TS VS -> T
 veT (NameVE vs _) = vsT vs
+veT (BoolVE _) = BoolT
 veT (StructVE fs) = StructT (fmap veT fs)
 veT (StructReadVE f s) =
   case veT s of

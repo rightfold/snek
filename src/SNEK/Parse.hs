@@ -48,6 +48,7 @@ parseTE _ = error "not yet implemented"
 -- | Turn a datum into a value expression.
 parseVE :: Datum -> Either ParseError (VE () () ())
 parseVE (Symbol name)    = return $ NameVE () name
+parseVE (Bool b)         = return $ BoolVE b
 parseVE (List  [])       = throwError CallWithoutCallee
 parseVE (Array [])       = throwError CallWithoutCallee
 parseVE (List  [_])      = throwError CallWithoutArgument

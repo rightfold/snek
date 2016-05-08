@@ -26,6 +26,9 @@ data VE ks ts vs
   -- | Reference to named value.
   = NameVE vs String
 
+  -- | Boolean literal.
+  | BoolVE Bool
+
   -- | Struct literal.
   | StructVE (Map String (VE ks ts vs))
 
