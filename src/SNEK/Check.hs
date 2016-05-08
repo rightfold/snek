@@ -103,6 +103,11 @@ checkVE :: VE ks ts vs -> Check (VE KS TS VS)
 checkVE (NameVE _ name) = (view eVSs >>=) $ Map.lookup name >>> \case
                             Just vs -> return $ NameVE vs name
                             Nothing -> throwError (ValueNotInScope name)
+checkVE (LetVE n v b) = do
+  v' <- checkVE v
+  let vT = veT v'
+  b' <- local (eVSs %~ Map.insert n (VS vT)) $ checkVE b
+  return $ LetVE n v' b'
 checkVE (ValueLambdaVE p pt b) = do
   pt' <- checkTE pt
   let ptT = teT pt'
@@ -166,6 +171,7 @@ veT (TypeApplyVE f a) =
   case veT f of
     UniversalT i _ b -> replaceVarT i b (teT a)
     _ -> error "veT: ill-typed expression"
+veT (LetVE _ _ b) = veT b
 
 -------------------------------------------------------------------------------
 -- Error helpers

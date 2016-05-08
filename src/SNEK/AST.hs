@@ -23,6 +23,9 @@ data VE ks ts vs
   -- | Reference to named value.
   = NameVE vs String
 
+  -- | Let binding.
+  | LetVE String (VE ks ts vs) (VE ks ts vs)
+
   -- | Value-dependent value.
   | ValueLambdaVE String (TE ts) (VE ks ts vs)
 

@@ -58,6 +58,10 @@ parseVE (Array (f : as)) = do
   return $ foldl TypeApplyVE f' as'
 
 parseVESpecial :: Datum -> [Datum] -> Either ParseError (Maybe (VE () () ()))
+parseVESpecial (Symbol "let") as = Just <$> go
+  where go = case as of
+              [List [Symbol n, v], b] -> LetVE n <$> parseVE v <*> parseVE b
+              _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "fn") as = Just <$> go
   where go = case as of
           [List  ps, b] -> go' ValueLambdaVE           ps b parseTE

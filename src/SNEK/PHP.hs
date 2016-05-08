@@ -17,6 +17,8 @@ runPHPGen :: PHPGen a -> a
 runPHPGen g = runReader g Set.empty
 
 ve2PHPS :: (String -> String) -> VE ks ts vs -> PHPGen String
+ve2PHPS r (LetVE n v b) = (++) <$> ve2PHPS (\e -> "$" ++ n ++ " = " ++ e ++ ";\n") v
+                               <*> ve2PHPS r b
 ve2PHPS r e = r <$> ve2PHPE e
 
 ve2PHPE :: VE ks ts vs -> PHPGen String
