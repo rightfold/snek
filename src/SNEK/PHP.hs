@@ -38,6 +38,7 @@ ve2PHPS r e = r <$> ve2PHPE e
 
 ve2PHPE :: VE ks ts vs -> PHPGen String
 ve2PHPE (NameVE _ s) = return $ "$" ++ s
+ve2PHPE (BoolVE v) = return $ if v then "TRUE" else "FALSE"
 ve2PHPE (StructVE fs) = do
   fs' <- mapM ve2PHPE fs
   return $ "(object)[\n"
