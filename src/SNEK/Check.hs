@@ -96,6 +96,7 @@ checkTE :: TE ts -> Check (TE TS)
 checkTE (NameTE _ name) = (view eTSs >>=) $ Map.lookup name >>> \case
                             Just ts -> return $ NameTE ts name
                             Nothing -> throwError (TypeNotInScope name)
+checkTE (StructTE fs) = StructTE <$> mapM checkTE fs
 checkTE (ApplyTE f a) = do
   f' <- checkTE f
   a' <- checkTE a
@@ -178,6 +179,7 @@ keK (ApplyKE f a) = ApplyK (keK f) (keK a)
 --   well-typed.
 teT :: TE TS -> T
 teT (NameTE ts _) = tsT ts
+teT (StructTE fs) = StructT (fmap teT fs)
 teT (ApplyTE f a) = ApplyT (teT f) (teT a)
 
 -- | Return the type of a value expression. The value expression must be

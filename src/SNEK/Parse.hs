@@ -38,6 +38,11 @@ parseTE (List (f : as@(_ : _))) = do
   f' <- parseTE f
   as' <- mapM parseTE as
   return $ foldl ApplyTE f' as'
+parseTE (Dict fs) = do
+  fs' <- (Map.fromList <$>) . forM (Map.toList fs) $ \case
+    (Symbol n, t) -> (n,) <$> parseTE t
+    _ -> throwError NonSymbolStructKey
+  return (StructTE fs')
 parseTE _ = error "not yet implemented"
 
 -- | Turn a datum into a value expression.

@@ -17,6 +17,7 @@ data KE ks
 data TE ts
   -- | Reference to named type.
   = NameTE ts String
+  | StructTE (Map String (TE ts))
   | ApplyTE (TE ts) (TE ts)
   deriving (Show)
 

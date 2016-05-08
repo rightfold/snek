@@ -1,0 +1,7 @@
+(let (
+  dual (fn [t *]
+         (fn (sg {append (-> t (-> t t))})
+           {append (fn (x t, y t) ((.append sg) y x))}))
+) {
+  dual dual
+})
