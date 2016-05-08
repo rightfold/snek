@@ -26,7 +26,7 @@ module SNEK.Check
 
 import Control.Category ((>>>))
 import Control.Lens ((%~), makeLenses, view)
-import Control.Monad (forM)
+import Control.Monad (forM, when)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (local, ReaderT, runReaderT)
 import Control.Monad.State (evalState, get, modify, State)
@@ -122,10 +122,15 @@ checkVE (LetVE n v b) = do
   return $ LetVE n v' b'
 checkVE (LetRecVE bds b) = do
   bds' <- forM bds $ \(n, t, v) -> (n, , v) <$> checkTE t
-  let bVSs = foldl (\m (n, t, _) -> Map.insert n (VS (teT t)) m) Map.empty bds'
-  local (eVSs %~ Map.union `flip` bVSs) $
-    LetRecVE <$> mapM (\(n, t, v) -> (n, t,) <$> checkVE v) bds'
-             <*> checkVE b
+  let bVSs = foldl (\m (n, t', _) -> Map.insert n (VS (teT t')) m) Map.empty bds'
+  local (eVSs %~ Map.union bVSs) $ do
+    bds'' <- forM bds' $ \(n, t', v) -> do
+               v' <- checkVE v
+               when (veT v' /= teT t') $
+                 throwError $ TypeMismatch (veT v') (teT t')
+               return (n, t', v')
+    b' <- checkVE b
+    return $ LetRecVE bds'' b'
 checkVE (ValueLambdaVE p pt b) = do
   pt' <- checkTE pt
   let ptT = teT pt'
