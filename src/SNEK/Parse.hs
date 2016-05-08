@@ -13,9 +13,12 @@ import Data.List.Split (chunksOf)
 import SNEK.AST (KE(..), TE(..), VE(..))
 import SNEK.Data (Datum(..))
 
+import qualified Data.Map as Map
+
 data ParseError
   = CallWithoutCallee
   | CallWithoutArgument
+  | NonSymbolStructKey
   | IllFormedSpecialForm
   deriving (Eq, Show)
 
@@ -56,6 +59,10 @@ parseVE (Array (f : as)) = do
   f' <- parseVE f
   as' <- mapM parseTE as
   return $ foldl TypeApplyVE f' as'
+parseVE (Dict fs) = StructVE . Map.fromList <$> go
+  where go = forM (Map.toList fs) $ \case
+               (Symbol n, v) -> (n,) <$> parseVE v
+               _ -> throwError NonSymbolStructKey
 
 parseVESpecial :: Datum -> [Datum] -> Either ParseError (Maybe (VE () () ()))
 parseVESpecial (Symbol "let") as = Just <$> go

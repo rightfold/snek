@@ -4,6 +4,8 @@ module SNEK.AST
 , VE(..)
 ) where
 
+import Data.Map (Map)
+
 -- | Kind expression.
 data KE ks
   -- | Reference to named kind.
@@ -22,6 +24,9 @@ data TE ts
 data VE ks ts vs
   -- | Reference to named value.
   = NameVE vs String
+
+  -- | Struct literal.
+  | StructVE (Map String (VE ks ts vs))
 
   -- | Let binding.
   | LetVE String (VE ks ts vs) (VE ks ts vs)
