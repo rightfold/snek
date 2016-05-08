@@ -26,6 +26,15 @@ ve2PHPM e = do
   return $ "<?php\nreturn (function() {\n" ++ indent s ++ "})();\n"
 
 ve2PHPS :: (String -> String) -> VE ks ts vs -> PHPGen String
+ve2PHPS r (IfVE c t f) = do
+  c' <- ve2PHPE c
+  t' <- ve2PHPS r t
+  f' <- ve2PHPS r f
+  return $ "if (" ++ c' ++ ") {\n"
+        ++ indent t'
+        ++ "} else {\n"
+        ++ indent f'
+        ++ "}\n"
 ve2PHPS r (LetVE n v b) =
   local (Set.insert n) $
     (++) <$> ve2PHPS (assign n) v
@@ -47,6 +56,11 @@ ve2PHPE (StructVE fs) = do
 ve2PHPE (StructReadVE f s) = do
   s' <- ve2PHPE s
   return $ "(" ++ s' ++ ")->" ++ f
+ve2PHPE (IfVE c t f) = do
+  c' <- ve2PHPE c
+  t' <- ve2PHPE t
+  f' <- ve2PHPE f
+  return $ "(" ++ c' ++ ") ? (" ++ t' ++ ") : (" ++ f' ++ ")"
 ve2PHPE (ValueLambdaVE p _ b) = do
   use <- mkUse <$> ask
   b' <- local (Set.insert p) $ ve2PHPS (\e -> "return " ++ e ++ ";\n") b
