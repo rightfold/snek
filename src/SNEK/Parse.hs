@@ -71,7 +71,12 @@ parseVESpecial (Symbol ('.' : f)) as = Just <$> go
                _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "let") as = Just <$> go
   where go = case as of
-              [List [Symbol n, v], b] -> LetVE n <$> parseVE v <*> parseVE b
+              [List bds, b] -> do
+                bds' <- forM (chunksOf 2 bds) $ \case
+                          [Symbol n, v] -> (n,) <$> parseVE v
+                          _ -> throwError IllFormedSpecialForm
+                b' <- parseVE b
+                return $ foldr (uncurry LetVE) b' bds'
               _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "fn") as = Just <$> go
   where go = case as of
@@ -81,7 +86,7 @@ parseVESpecial (Symbol "fn") as = Just <$> go
         go' node ps b parseTK = do
           ps' <- parseParams ps parseTK
           b' <- parseVE b
-          return $ foldr (\(p, t) -> node p t) b' ps'
+          return $ foldr (uncurry node) b' ps'
         parseParams ps parseTK = do
           let pairs = (chunksOf 2 ps)
           when (null pairs) (throwError IllFormedSpecialForm)
