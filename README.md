@@ -5,6 +5,16 @@ higher-kinded types, and strict evaluation.
 
 A PHP code generator is included.
 
+## Compiler internals
+
+This project is mostly an exercise of implementing a type checker for System Fω.
+The compiler implementation is kept as simple as possible. It has a number of
+stages, shown in the following figure.
+
+![Compiler flow chart.][cflow]
+
+[cflow]: http://i.imgur.com/LKd6gOG.png
+
 ## Examples
 
     ; Comments start with a semicolon and extend until the end of the line.
