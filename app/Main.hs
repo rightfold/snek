@@ -4,6 +4,7 @@ import Control.Lens ((%~))
 import Data.Function ((&))
 import SNEK.Check (checkVE, emptyE, eKSs, eTSs, eVSs, runCheck, veT)
 import SNEK.Parse (parseVE)
+import SNEK.PHP (ve2PHPS)
 import SNEK.Read (readData)
 import SNEK.Symbol (KS(..), TS(..), VS(..))
 import SNEK.Type ((~->~), K(..), prettyT, T(..))
@@ -17,14 +18,16 @@ main = interact $ \text ->
       case mapM parseVE data_ of
         Right ast ->
           case mapM check ast of
-            Right tast -> show tast ++ "\n"
+            Right tast -> concat tast
             Left  err  -> show err ++ "\n"
         Left  err -> show err ++ "\n"
     Nothing -> show "read error\n"
 
   where check e = case runCheck (checkVE e) env of
                     Left  er -> Left er
-                    Right te -> Right (te, prettyT $ veT te)
+                    Right te -> Right $ "// " ++ show te ++ "\n"
+                                     ++ "// " ++ prettyT (veT te) ++ "\n"
+                                     ++ ve2PHPS (++ ";") te ++ "\n"
         env = emptyE
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eKSs %~ Map.insert "->" (KS FuncK)
