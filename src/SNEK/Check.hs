@@ -81,12 +81,22 @@ checkKE :: KE ts -> Check (KE KS)
 checkKE (NameKE _ name) = (view eKSs >>=) $ Map.lookup name >>> \case
                             Just ks -> return $ NameKE ks name
                             Nothing -> throwError (KindNotInScope name)
+checkKE (ApplyKE f a) = do
+  f' <- checkKE f
+  a' <- checkKE a
+  -- TODO: sort-check kinds
+  return $ ApplyKE f' a'
 
 -- | Check a type expression in the current environment.
 checkTE :: TE ts -> Check (TE TS)
 checkTE (NameTE _ name) = (view eTSs >>=) $ Map.lookup name >>> \case
                             Just ts -> return $ NameTE ts name
                             Nothing -> throwError (TypeNotInScope name)
+checkTE (ApplyTE f a) = do
+  f' <- checkTE f
+  a' <- checkTE a
+  -- TODO: kind-check types
+  return $ ApplyTE f' a'
 
 -- | Check a value expression in the current environment.
 checkVE :: VE ks ts vs -> Check (VE KS TS VS)
@@ -134,11 +144,13 @@ checkVE (TypeApplyVE f a) = do
 --   well-kinded.
 keK :: KE KS -> K
 keK (NameKE ks _) = ksK ks
+keK (ApplyKE f a) = ApplyK (keK f) (keK a)
 
 -- | Return the type of a type expression. The type expression must be
 --   well-typed.
 teT :: TE TS -> T
 teT (NameTE ts _) = tsT ts
+teT (ApplyTE f a) = ApplyT (teT f) (teT a)
 
 -- | Return the type of a value expression. The value expression must be
 --   well-typed.

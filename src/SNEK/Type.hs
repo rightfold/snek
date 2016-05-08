@@ -1,5 +1,7 @@
 module SNEK.Type
-( K(..)
+( S(..)
+
+, K(..)
 , (*->*)
 
 , T(..)
@@ -15,6 +17,11 @@ module SNEK.Type
 
 infixr 5 *->*
 infixr 5 ~->~
+
+-- | Sort.
+data S
+  = KindS
+  deriving (Eq, Show)
 
 -- | Kind.
 data K

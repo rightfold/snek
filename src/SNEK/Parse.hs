@@ -22,11 +22,19 @@ data ParseError
 -- | Turn a datum into a kind expression.
 parseKE :: Datum -> Either ParseError (KE ())
 parseKE (Symbol name) = return $ NameKE () name
+parseKE (List (f : as@(_ : _))) = do
+  f' <- parseKE f
+  as' <- mapM parseKE as
+  return $ foldl ApplyKE f' as'
 parseKE _ = error "not yet implemented"
 
 -- | Turn a datum into a type expression.
 parseTE :: Datum -> Either ParseError (TE ())
 parseTE (Symbol name) = return $ NameTE () name
+parseTE (List (f : as@(_ : _))) = do
+  f' <- parseTE f
+  as' <- mapM parseTE as
+  return $ foldl ApplyTE f' as'
 parseTE _ = error "not yet implemented"
 
 -- | Turn a datum into a value expression.

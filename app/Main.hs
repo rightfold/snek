@@ -27,6 +27,8 @@ main = interact $ \text ->
                     Right te -> Right (te, prettyT $ veT te)
         env = emptyE
               & eKSs %~ Map.insert "*" (KS TypeK)
+              & eKSs %~ Map.insert "->" (KS FuncK)
+              & eTSs %~ Map.insert "->" (TS FuncT)
               & eTSs %~ Map.insert "bool" (TS BoolT)
               & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))
               & eVSs %~ Map.insert "true" (VS BoolT) -- this will be a literal later

@@ -8,12 +8,14 @@ module SNEK.AST
 data KE ks
   -- | Reference to named kind.
   = NameKE ks String
+  | ApplyKE (KE ks) (KE ks)
   deriving (Show)
 
 -- | Type expression.
 data TE ts
   -- | Reference to named type.
   = NameTE ts String
+  | ApplyTE (TE ts) (TE ts)
   deriving (Show)
 
 -- | Value expression.
