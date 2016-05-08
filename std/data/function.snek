@@ -4,4 +4,9 @@
 
   #! Return the first value argument.
   const (fn [t *, u *] (fn (x t, _ u) x))
-) {id id, const const})
+
+  #! Function composition.
+  compose (fn [a *, b *, c *]
+            (fn (f (-> b c), g (-> a b), x a)
+              (f (g x))))
+) {id id, const const, compose compose})
