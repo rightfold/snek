@@ -62,6 +62,8 @@ data CheckError
   | KindMismatch K K
   | TypeMismatch T T
   | NonFunctionApplication T
+  | NonStruct T
+  | UnknownField String T
   deriving (Eq, Show)
 
 type Check = EitherT CheckError (ReaderT E (State Int))
@@ -103,6 +105,14 @@ checkVE :: VE ks ts vs -> Check (VE KS TS VS)
 checkVE (NameVE _ name) = (view eVSs >>=) $ Map.lookup name >>> \case
                             Just vs -> return $ NameVE vs name
                             Nothing -> throwError (ValueNotInScope name)
+checkVE (StructVE fs) = StructVE <$> mapM checkVE fs
+checkVE (StructReadVE f s) = do
+  s' <- checkVE s
+  let sT = veT s'
+  case sT of
+    StructT fs | Map.member f fs -> return $ StructReadVE f s'
+               | otherwise       -> throwError (UnknownField f sT)
+    _ -> throwError (NonStruct sT)
 checkVE (LetVE n v b) = do
   v' <- checkVE v
   let vT = veT v'
@@ -161,6 +171,13 @@ teT (ApplyTE f a) = ApplyT (teT f) (teT a)
 --   well-typed.
 veT :: VE KS TS VS -> T
 veT (NameVE vs _) = vsT vs
+veT (StructVE fs) = StructT (fmap veT fs)
+veT (StructReadVE f s) =
+  case veT s of
+    StructT fs -> case Map.lookup f fs of
+                    Just t  -> t
+                    Nothing -> error "veT: ill-typed expression"
+    _ -> error "veT: ill-typed expression"
 veT (ValueLambdaVE _   pt b) = ApplyT (ApplyT FuncT (teT pt)) (veT b)
 veT (TypeLambdaVE  _ i pk b) = UniversalT i (keK pk) (veT b)
 veT (ValueApplyVE f _) =
