@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
 module SNEK.Check
 ( -- * Environment
   E(..)
@@ -25,6 +26,7 @@ module SNEK.Check
 
 import Control.Category ((>>>))
 import Control.Lens ((%~), makeLenses, view)
+import Control.Monad (forM)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader (local, ReaderT, runReaderT)
 import Control.Monad.State (evalState, get, modify, State)
@@ -118,6 +120,12 @@ checkVE (LetVE n v b) = do
   let vT = veT v'
   b' <- local (eVSs %~ Map.insert n (VS vT)) $ checkVE b
   return $ LetVE n v' b'
+checkVE (LetRecVE bds b) = do
+  bds' <- forM bds $ \(n, t, v) -> (n, , v) <$> checkTE t
+  let bVSs = foldl (\m (n, t, _) -> Map.insert n (VS (teT t)) m) Map.empty bds'
+  local (eVSs %~ Map.union `flip` bVSs) $
+    LetRecVE <$> mapM (\(n, t, v) -> (n, t,) <$> checkVE v) bds'
+             <*> checkVE b
 checkVE (ValueLambdaVE p pt b) = do
   pt' <- checkTE pt
   let ptT = teT pt'
@@ -143,7 +151,7 @@ checkVE (ValueApplyVE f a) = do
 checkVE (TypeApplyVE f a) = do
   f' <- checkVE f
   case veT f' of
-    UniversalT id k b -> do
+    UniversalT _ k _ -> do
       a' <- checkTE a
       let ak = tK (teT a')
       if ak == k
@@ -178,6 +186,8 @@ veT (StructReadVE f s) =
                     Just t  -> t
                     Nothing -> error "veT: ill-typed expression"
     _ -> error "veT: ill-typed expression"
+veT (LetVE _ _ b) = veT b
+veT (LetRecVE _ b) = veT b
 veT (ValueLambdaVE _   pt b) = ApplyT (ApplyT FuncT (teT pt)) (veT b)
 veT (TypeLambdaVE  _ i pk b) = UniversalT i (keK pk) (veT b)
 veT (ValueApplyVE f _) =
@@ -188,7 +198,6 @@ veT (TypeApplyVE f a) =
   case veT f of
     UniversalT i _ b -> replaceVarT i b (teT a)
     _ -> error "veT: ill-typed expression"
-veT (LetVE _ _ b) = veT b
 
 -------------------------------------------------------------------------------
 -- Error helpers
