@@ -9,6 +9,7 @@ import Control.Monad.Reader (ask, local, Reader, runReader)
 import Data.Set (Set)
 import SNEK.AST (VE(..))
 
+import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 type PHPGen = Reader (Set String)
@@ -23,6 +24,14 @@ ve2PHPS r e = r <$> ve2PHPE e
 
 ve2PHPE :: VE ks ts vs -> PHPGen String
 ve2PHPE (NameVE _ s) = return $ "$" ++ s
+ve2PHPE (StructVE fs) = do
+  fs' <- mapM ve2PHPE fs
+  return $ "(object)[\n"
+        ++ indent (Map.toList fs' >>= \(f, v) -> "'" ++ f ++ "' => " ++ v ++ ",\n")
+        ++ "]"
+ve2PHPE (StructReadVE f s) = do
+  s' <- ve2PHPE s
+  return $ "(" ++ s' ++ ")->" ++ f
 ve2PHPE (ValueLambdaVE p _ b) = do
   use <- mkUse <$> ask
   b' <- local (Set.insert p) $ ve2PHPS (\e -> "return " ++ e ++ ";\n") b
