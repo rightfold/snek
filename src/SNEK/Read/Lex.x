@@ -11,6 +11,8 @@ tokens :-
 
   [a-zA-Z_=>\*\.\-]+  { Identifier }
 
+  \{                  { const BraceLeft }
+  \}                  { const BraceRight }
   \[                  { const BracketLeft }
   \]                  { const BracketRight }
   \(                  { const ParenLeft }
@@ -20,6 +22,8 @@ tokens :-
 data Token
   = Identifier String
 
+  | BraceLeft
+  | BraceRight
   | BracketLeft
   | BracketRight
   | ParenLeft

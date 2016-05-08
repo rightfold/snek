@@ -3,10 +3,13 @@ module SNEK.Data
 , Datum(..)
 ) where
 
+import Data.Map (Map)
+
 type Data = [Datum]
 
 data Datum
   = Symbol String
   | List [Datum]
   | Array [Datum]
-  deriving (Eq, Show)
+  | Dict (Map Datum Datum)
+  deriving (Eq, Ord, Show)
