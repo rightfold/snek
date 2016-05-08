@@ -27,10 +27,9 @@ main = interact $ \text ->
                     Left  er -> Left er
                     Right te -> Right $ runPHPGen (ve2PHPM te)
         env = emptyE
+
               & eKSs %~ Map.insert "*" (KS TypeK)
               & eKSs %~ Map.insert "->" (KS FuncK)
-              & eTSs %~ Map.insert "->" (TS FuncT)
+
               & eTSs %~ Map.insert "bool" (TS BoolT)
-              & eVSs %~ Map.insert "not" (VS (BoolT ~->~ BoolT))
-              & eVSs %~ Map.insert "true" (VS BoolT) -- this will be a literal later
-              & eVSs %~ Map.insert "false" (VS BoolT) -- this will be a literal later
+              & eTSs %~ Map.insert "->" (TS FuncT)

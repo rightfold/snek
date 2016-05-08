@@ -16,6 +16,9 @@ import qualified Data.Map as Map
 %token
   identifier          { Identifier $$ }
 
+  '#t'                { BoolLiteral True }
+  '#f'                { BoolLiteral False }
+
   '{'                 { BraceLeft }
   '}'                 { BraceRight }
   '['                 { BracketLeft }
@@ -29,11 +32,15 @@ Data :            { [] }
      | Datum Data { $1 : $2 }
 
 Datum : Symbol { $1 }
+      | Bool   { $1 }
       | List   { $1 }
       | Array  { $1 }
       | Dict   { $1 }
 
 Symbol : identifier { Symbol $1 }
+
+Bool : '#t' { Bool True }
+     | '#f' { Bool False }
 
 List : '(' Data ')' { List $2 }
 

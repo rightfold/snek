@@ -9,6 +9,7 @@ type Data = [Datum]
 
 data Datum
   = Symbol String
+  | Bool Bool
   | List [Datum]
   | Array [Datum]
   | Dict (Map Datum Datum)

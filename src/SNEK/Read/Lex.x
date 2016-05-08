@@ -12,6 +12,9 @@ tokens :-
 
   [a-zA-Z_=>\*\.\-]+  { Identifier }
 
+  \#t                 { const (BoolLiteral True) }
+  \#f                 { const (BoolLiteral False) }
+
   \{                  { const BraceLeft }
   \}                  { const BraceRight }
   \[                  { const BracketLeft }
@@ -22,6 +25,8 @@ tokens :-
 {
 data Token
   = Identifier String
+
+  | BoolLiteral Bool
 
   | BraceLeft
   | BraceRight
