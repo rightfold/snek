@@ -78,6 +78,15 @@ parseVESpecial (Symbol "let") as = Just <$> go
                 b' <- parseVE b
                 return $ foldr (uncurry LetVE) b' bds'
               _ -> throwError IllFormedSpecialForm
+parseVESpecial (Symbol "let-rec") as = Just <$> go
+  where go = case as of
+              [List bds, b] -> do
+                bds' <- forM (chunksOf 3 bds) $ \case
+                          [Symbol n, t, v] -> (n,,) <$> parseTE t <*> parseVE v
+                          _ -> throwError IllFormedSpecialForm
+                b' <- parseVE b
+                return $ LetRecVE bds' b'
+              _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "fn") as = Just <$> go
   where go = case as of
           [List  ps, b] -> go' ValueLambdaVE           ps b parseTE

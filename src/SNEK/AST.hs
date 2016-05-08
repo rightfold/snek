@@ -34,6 +34,9 @@ data VE ks ts vs
   -- | Let binding.
   | LetVE String (VE ks ts vs) (VE ks ts vs)
 
+  -- | Recursive let binding.
+  | LetRecVE [(String, TE ts, VE ks ts vs)] (VE ks ts vs)
+
   -- | Value-dependent value.
   | ValueLambdaVE String (TE ts) (VE ks ts vs)
 
