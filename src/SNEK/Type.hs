@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module SNEK.Type
 ( S(..)
 
@@ -14,6 +15,12 @@ module SNEK.Type
 , prettyK
 , prettyT
 ) where
+
+import Control.Lens ((%=), _1, _2)
+import Control.Monad.State (evalState, gets, State)
+import Data.Map (Map)
+
+import qualified Data.Map as Map
 
 infixr 5 *->*
 infixr 5 ~->~
@@ -40,7 +47,32 @@ data T
   | ApplyT T T
   | VarT Int K
   | UniversalT Int K T
-  deriving (Eq, Show)
+  deriving (Show)
+
+instance Eq T where
+  t == u = normalize t `eq` normalize u
+    where eq :: T -> T -> Bool
+          BoolT            `eq` BoolT               = True
+          FuncT            `eq` FuncT               = True
+          ApplyT f a       `eq` ApplyT f' a'        = f `eq` f' && a `eq` a'
+          VarT i k         `eq` VarT i' k'          = i == i' && k == k'
+          UniversalT i k t `eq` UniversalT i' k' t' = i == i' && k == k' && t `eq` t'
+          _                `eq` _                   = False
+
+          normalize :: T -> T
+          normalize t = evalState (go t) (0, Map.empty)
+            where go :: T -> State (Int, Map Int Int) T
+                  go BoolT              = return BoolT
+                  go FuncT              = return FuncT
+                  go (ApplyT f a)       = ApplyT <$> go f <*> go a
+                  go (VarT i k)         = gets (Map.lookup i . snd) >>= \case
+                                            Just j  -> return $ VarT j k
+                                            Nothing -> return $ VarT i k
+                  go (UniversalT i k t) = do
+                    i' <- do { _1 %= pred; gets fst }
+                    _2 %= Map.insert i i'
+                    UniversalT i' k <$> go t
+
 
 (~->~) :: T -> T -> T
 t ~->~ u = ApplyT (ApplyT FuncT t) u
