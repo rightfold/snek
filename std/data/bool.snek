@@ -1,25 +1,23 @@
-{t #t f #f}
+(let (
+  and (fn (x bool, y bool)
+        (if x y #f))
 
-; (let (
-;   and (fn (x bool, y bool)
-;         (if x y #f))
+  or (fn (x bool, y bool)
+       (if x #t y))
 
-;   or (fn (x bool, y bool)
-;        (if x #t y))
+  not (fn (x bool)
+        (if x #f #t))
 
-;   not (fn (x bool)
-;         (if x #f #t))
+  implies (fn (x bool, y bool)
+            (or (not x) y))
 
-;   implies (fn (x bool, y bool)
-;             (or (not x) y))
-
-;   complement (fn [i *]
-;                (fn (f (-> i bool), x i)
-;                  (not (f x))))
-; ) {
-;   and and
-;   or or
-;   not not
-;   implies implies
-;   complement complement
-; })
+  complement (fn [i *]
+               (fn (f (-> i bool), x i)
+                 (not (f x))))
+) {
+  and and
+  or or
+  not not
+  implies implies
+  complement complement
+})

@@ -75,6 +75,10 @@ parseVESpecial (Symbol ('.' : f)) as = Just <$> go
   where go = case as of
                [v] -> StructReadVE f <$> parseVE v
                _ -> throwError IllFormedSpecialForm
+parseVESpecial (Symbol "if") as = Just <$> go
+  where go = case as of
+               [c, t, f] -> IfVE <$> parseVE c <*> parseVE t <*> parseVE f
+               _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "let") as = Just <$> go
   where go = case as of
               [List bds, b] -> do
