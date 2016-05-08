@@ -65,6 +65,10 @@ parseVE (Dict fs) = StructVE . Map.fromList <$> go
                _ -> throwError NonSymbolStructKey
 
 parseVESpecial :: Datum -> [Datum] -> Either ParseError (Maybe (VE () () ()))
+parseVESpecial (Symbol ('.' : f)) as = Just <$> go
+  where go = case as of
+               [v] -> StructReadVE f <$> parseVE v
+               _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "let") as = Just <$> go
   where go = case as of
               [List [Symbol n, v], b] -> LetVE n <$> parseVE v <*> parseVE b

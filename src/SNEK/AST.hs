@@ -28,6 +28,9 @@ data VE ks ts vs
   -- | Struct literal.
   | StructVE (Map String (VE ks ts vs))
 
+  -- | Reading a value from a struct.
+  | StructReadVE String (VE ks ts vs)
+
   -- | Let binding.
   | LetVE String (VE ks ts vs) (VE ks ts vs)
 
