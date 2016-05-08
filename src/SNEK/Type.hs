@@ -18,7 +18,7 @@ module SNEK.Type
 
 import Control.Lens ((%=), _1, _2)
 import Control.Monad.State (evalState, gets, State)
-import Data.List (sortOn)
+import Data.List (intercalate, sortOn)
 import Data.Map (Map)
 
 import qualified Data.Map as Map
@@ -117,6 +117,8 @@ prettyK (ApplyK f a) = "(" ++ prettyK f ++ " " ++ prettyK a ++ ")"
 prettyT :: T -> String
 prettyT BoolT = "bool"
 prettyT FuncT = "->"
+prettyT (StructT fs) = "{" ++ intercalate ", " (f <$> Map.toList fs) ++ "}"
+  where f (n, t) = n ++ " " ++ prettyT t
 prettyT (ApplyT f a) = "(" ++ prettyT f ++ " " ++ prettyT a ++ ")"
 prettyT (VarT i k) = "[__" ++ show i ++ " " ++ prettyK k ++ "]"
 prettyT (UniversalT i k t) =
