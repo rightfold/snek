@@ -57,5 +57,5 @@ data VE ks ts vs
   | TypeApplyVE (VE ks ts vs) (TE ts)
 
   -- | Import.
-  | ImportVE String
+  | ImportVE vs String
   deriving (Show)

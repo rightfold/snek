@@ -35,22 +35,26 @@ import Data.Map (Map)
 import SNEK.AST (KE(..), TE(..), VE(..))
 import SNEK.Symbol (KS(..), TS(..), VS(..))
 import SNEK.Type (K(..), replaceVarT, T(..), tK)
+import System.FilePath ((</>), (<.>), takeDirectory)
 
 import qualified Data.Map as Map
+import qualified System.FilePath as FilePath
 
 -------------------------------------------------------------------------------
 -- Environment
 -------------------------------------------------------------------------------
 
 -- | Environment (also known as "symbol table").
-data E = E { _eKSs :: Map String KS -- ^ Kind symbols in scope.
-           , _eTSs :: Map String TS -- ^ Type symbols in scope.
-           , _eVSs :: Map String VS -- ^ Value symbols in scope.
+data E = E { _eKSs      :: Map String KS -- ^ Kind symbols in scope.
+           , _eTSs      :: Map String TS -- ^ Type symbols in scope.
+           , _eVSs      :: Map String VS -- ^ Value symbols in scope.
+           , _file      :: String
+           , _fileTypes :: Map String T
            }
 $(makeLenses ''E)
 
 -- | Empty environment.
-emptyE :: E
+emptyE :: String -> Map String T -> E
 emptyE = E Map.empty Map.empty Map.empty
 
 -------------------------------------------------------------------------------
@@ -66,6 +70,7 @@ data CheckError
   | NonFunctionApplication T
   | NonStruct T
   | UnknownField String T
+  | NoSuchFile String
   deriving (Eq, Show)
 
 type Check = EitherT CheckError (ReaderT E (State Int))
@@ -171,6 +176,13 @@ checkVE (TypeApplyVE f a) = do
         then return $ TypeApplyVE f' a'
         else throwError (KindMismatch ak k)
     t -> throwError (NonFunctionApplication t)
+checkVE (ImportVE _ importFile) = do
+  curDir <- takeDirectory <$> view file
+  let absoluteImportFile = FilePath.normalise $ curDir </> importFile <.> "snek"
+  it <- Map.lookup absoluteImportFile <$> view fileTypes
+  case it of
+    Just t  -> return (ImportVE (VS t) importFile)
+    Nothing -> throwError (NoSuchFile absoluteImportFile)
 
 -------------------------------------------------------------------------------
 -- Deriving kinds and types from expressions
@@ -214,6 +226,7 @@ veT (TypeApplyVE f a) =
   case veT f of
     UniversalT i _ b -> replaceVarT i b (teT a)
     _ -> error "veT: ill-typed expression"
+veT (ImportVE s _) = vsT s
 
 -------------------------------------------------------------------------------
 -- Error helpers

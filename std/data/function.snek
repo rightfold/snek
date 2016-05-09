@@ -33,6 +33,7 @@
   id id
   const const
   compose compose
+  flip flip
   category category
   semigroup semigroup
   monoid monoid

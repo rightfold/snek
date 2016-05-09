@@ -114,7 +114,7 @@ parseVESpecial (Symbol "fn") as = Just <$> go
             _ -> throwError IllFormedSpecialForm
 parseVESpecial (Symbol "import") as = Just <$> go
   where go = case as of
-               [String file] -> return $ ImportVE file
+               [String file] -> return $ ImportVE () file
                _ -> throwError IllFormedSpecialForm
 parseVESpecial _ _ = return Nothing
 

@@ -18,45 +18,45 @@ spec = do
   describe "checkTE NameTE" $ do
     it "ok" $ do
       let c = checkTE (NameTE () "t")
-      let e = emptyE & eTSs %~ Map.insert "t" (TS FuncT)
+      let e = emptyE "" Map.empty & eTSs %~ Map.insert "t" (TS FuncT)
       runCheck c e `shouldSatisfy` \case
         Right (NameTE ts "t") -> tsT ts == FuncT
         _ -> False
     it "TypeNotInScope" $ do
       let c = checkTE (NameTE () "t")
-      runCheck c emptyE `shouldSatisfy` \case
+      runCheck c (emptyE "" Map.empty) `shouldSatisfy` \case
         Right _ -> False
         Left er -> er == TypeNotInScope "t"
   describe "checkVE NameVE" $ do
     it "ok" $ do
       let c = checkVE (NameVE () "x")
-      let e = emptyE & eVSs %~ Map.insert "x" (VS BoolT)
+      let e = emptyE "" Map.empty & eVSs %~ Map.insert "x" (VS BoolT)
       runCheck c e `shouldSatisfy` \case
         Right (NameVE vs "x") -> vsT vs == BoolT
         _ -> False
     it "ValueNotInScope" $ do
       let c = checkVE (NameVE () "x")
-      runCheck c emptyE `shouldSatisfy` \case
+      runCheck c (emptyE "" Map.empty) `shouldSatisfy` \case
         Right _ -> False
         Left er -> er == ValueNotInScope "x"
   describe "checkVE ValueLambdaVE" $ do
     it "ok" $ do
       let c = checkVE (ValueLambdaVE "x" (NameTE () "t") (NameVE () "x"))
-      let e = emptyE & eTSs %~ Map.insert "t" (TS BoolT)
+      let e = emptyE "" Map.empty & eTSs %~ Map.insert "t" (TS BoolT)
       runCheck c e `shouldSatisfy` \case
         Right (ValueLambdaVE "x" (NameTE ts "t") (NameVE vs "x")) ->
           tsT ts == BoolT && vsT vs == BoolT
         _ -> False
     it "KindMismatch" $ do
       let c = checkVE (ValueLambdaVE "x" (NameTE () "t") (NameVE () "x"))
-      let e = emptyE & eTSs %~ Map.insert "t" (TS FuncT)
+      let e = emptyE "" Map.empty & eTSs %~ Map.insert "t" (TS FuncT)
       runCheck c e `shouldSatisfy` \case
         Right _ -> False
         Left er -> er == KindMismatch (TypeK *->* TypeK *->* TypeK) TypeK
   describe "checkVE ValueApplyVE" $ do
     it "ok" $ do
       let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
-      let e = emptyE
+      let e = emptyE "" Map.empty
               & eVSs %~ Map.insert "f" (VS (BoolT ~->~ BoolT ~->~ BoolT))
               & eVSs %~ Map.insert "x" (VS BoolT)
       runCheck c e `shouldSatisfy` \case
@@ -66,7 +66,7 @@ spec = do
         _ -> False
     it "NonFunctionApplication" $ do
       let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
-      let e = emptyE
+      let e = emptyE "" Map.empty
               & eVSs %~ Map.insert "f" (VS BoolT)
               & eVSs %~ Map.insert "x" (VS BoolT)
       runCheck c e `shouldSatisfy` \case
@@ -74,7 +74,7 @@ spec = do
         Left er -> er == NonFunctionApplication BoolT
     it "TypeMismatch" $ do
       let c = checkVE (ValueApplyVE (NameVE () "f") (NameVE () "x"))
-      let e = emptyE
+      let e = emptyE "" Map.empty
               & eVSs %~ Map.insert "f" (VS ((BoolT ~->~ BoolT) ~->~ BoolT))
               & eVSs %~ Map.insert "x" (VS BoolT)
       runCheck c e `shouldSatisfy` \case
