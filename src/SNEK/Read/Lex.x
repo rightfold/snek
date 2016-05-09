@@ -15,6 +15,8 @@ tokens :-
   \#t                 { const (BoolLiteral True) }
   \#f                 { const (BoolLiteral False) }
 
+  \"[^\"]*\"          { StringLiteral . tail . init }
+
   \{                  { const BraceLeft }
   \}                  { const BraceRight }
   \[                  { const BracketLeft }
@@ -27,6 +29,7 @@ data Token
   = Identifier String
 
   | BoolLiteral Bool
+  | StringLiteral String
 
   | BraceLeft
   | BraceRight
