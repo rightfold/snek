@@ -73,7 +73,7 @@ ve2PHPE (ValueApplyVE f a) = do
   a' <- ve2PHPE a
   return $ "(" ++ f' ++ ")(" ++ a' ++ ")"
 ve2PHPE (TypeApplyVE f _) = ve2PHPE f
-ve2PHPE (ImportVE _ file) = return $ "require_once('" ++ file ++ "')"
+ve2PHPE (ImportVE _ file) = return $ "require_once(__DIR__ . '/" ++ file ++ ".php')"
 
 indent :: String -> String
 indent = unlines . map ("    " ++) . lines
