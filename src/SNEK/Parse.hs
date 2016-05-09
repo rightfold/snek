@@ -112,6 +112,10 @@ parseVESpecial (Symbol "fn") as = Just <$> go
           forM pairs $ \case
             [Symbol n, t] -> (n,) <$> parseTK t
             _ -> throwError IllFormedSpecialForm
+parseVESpecial (Symbol "import") as = Just <$> go
+  where go = case as of
+               [String file] -> return $ ImportVE file
+               _ -> throwError IllFormedSpecialForm
 parseVESpecial _ _ = return Nothing
 
 throwError :: a -> Either a b

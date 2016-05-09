@@ -55,4 +55,7 @@ data VE ks ts vs
 
   -- | Apply type-dependent value.
   | TypeApplyVE (VE ks ts vs) (TE ts)
+
+  -- | Import.
+  | ImportVE String
   deriving (Show)
