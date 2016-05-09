@@ -10,6 +10,10 @@
             (fn (f (-> b c), g (-> a b), x a)
               (f (g x))))
 
+  flip (fn [a *, b *, c *]
+         (fn (f (-> a (-> b c)), x b, y a)
+	   (f y x)))
+
   category {
     compose-id id
     compose compose
