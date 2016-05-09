@@ -1,7 +1,8 @@
 # SNEK
 
-SNEK is a programming language, featuring purity, currying, rank-N polymorphism,
-higher-kinded types, and strict evaluation.
+SNEK is a programming language featuring purity, currying, rank-N polymorphism,
+higher-kinded types, path-dependent types, generalized algebraic data types,
+and strict evaluation.
 
 A PHP code generator is included.
 
