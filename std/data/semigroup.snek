@@ -3,7 +3,7 @@
 
   dual (fn [t *]
          (fn (sg {append (-> t (-> t t))})
-           {append ([(.flip function) t t t] (.append sg))}))
+           {append ((.flip function) (.append sg))}))
 ) {
   dual dual
 })

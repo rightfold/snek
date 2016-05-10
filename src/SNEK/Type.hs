@@ -50,7 +50,10 @@ data T
   | ApplyT T T
   | VarT Int K
   | UniversalT Int K T
-  deriving (Show)
+
+-- HACK: this shouldn't be
+instance Show T where
+  show = prettyT
 
 instance Eq T where
   t == u = normalize t `eq` normalize u

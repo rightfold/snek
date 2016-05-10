@@ -71,6 +71,7 @@ data CheckError
   | NonStruct T
   | UnknownField String T
   | NoSuchFile String
+  | InferenceFailure T T
   deriving (Eq, Show)
 
 type Check = EitherT CheckError (ReaderT E (State Int))
@@ -158,14 +159,19 @@ checkVE (TypeLambdaVE p _ pk b) = do
   return $ TypeLambdaVE p varID pk' b'
 checkVE (ValueApplyVE f a) = do
   f' <- checkVE f
-  case veT f' of
-    ApplyT (ApplyT FuncT pt) _ -> do
-      a' <- checkVE a
-      let at = veT a'
+  a' <- checkVE a
+  let ft = veT f'
+      at = veT a'
+  case dissectUniversal ft of
+    ((_ : _), ApplyT (ApplyT FuncT ft') _) ->
+      case infer ft' at of
+        Just it -> return $ ValueApplyVE f' a'
+        Nothing -> throwError (InferenceFailure ft' at)
+    ([], ApplyT (ApplyT FuncT pt) _) -> do
       if at == pt
         then return $ ValueApplyVE f' a'
         else throwError (TypeMismatch pt at)
-    t -> throwError (NonFunctionApplication t)
+    ([], t) -> throwError (NonFunctionApplication t)
 checkVE (TypeApplyVE f a) = do
   f' <- checkVE f
   case veT f' of
@@ -183,6 +189,32 @@ checkVE (ImportVE _ importFile) = do
   case it of
     Just t  -> return (ImportVE (VS t) importFile)
     Nothing -> throwError (NoSuchFile absoluteImportFile)
+
+dissectUniversal :: T -> ([(Int, K)], T)
+dissectUniversal (UniversalT i k t) =
+  let (vs', t') = dissectUniversal t
+   in ((i, k) : vs', t')
+dissectUniversal t = ([], t)
+
+infer :: T -> T -> Maybe T
+infer forall with =
+  let (vs, t) = dissectUniversal forall
+      rs'     = findReplacements t with
+   in case rs' of
+        Just rs -> Just $ foldl (\f (i, t) -> replaceVarT i f t) forall rs
+        Nothing -> Nothing
+  where findReplacements :: T -> T -> Maybe [(Int, T)]
+        findReplacements BoolT BoolT                 = Just []
+        findReplacements FuncT FuncT                 = Just []
+        findReplacements (StructT fs) (StructT fs')  =
+          concat <$> mapM (uncurry findReplacements)
+                          (Map.elems fs `zip` Map.elems fs')
+        findReplacements (ApplyT c a) (ApplyT c' a') =
+          (++) <$> findReplacements c c' <*> findReplacements a a'
+        findReplacements (VarT i _) t                = Just [(i, t)]
+        findReplacements (UniversalT _ _ _) _        = error "NYI: rank-N inference"
+        findReplacements _ (UniversalT _ _ _)        = error "NYI: rank-N inference"
+        findReplacements t u                         = Nothing
 
 -------------------------------------------------------------------------------
 -- Deriving kinds and types from expressions
