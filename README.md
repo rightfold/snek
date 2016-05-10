@@ -1,10 +1,19 @@
 # SNEK
 
-SNEK is a programming language featuring purity, currying, rank-N polymorphism,
-higher-kinded types, path-dependent types, generalized algebraic data types,
-and strict evaluation.
+SNEK is a programming language. This repository contains a compiler and a
+standard library implementation.
 
 A PHP code generator is included.
+
+## Features and status
+
+ - [x] Purity
+ - [x] Currying
+ - [ ] Rank-N polymorphism
+ - [x] Higher-kinded types
+ - [ ] Path-dependent types
+ - [ ] Generalized algebraic data types
+ - [x] Strict evaluation
 
 ## Compiler internals
 
